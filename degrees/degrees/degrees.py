@@ -13,9 +13,6 @@ people = {}
 # Maps movie_ids to a dictionary of: title, year, stars (a set of person_ids)
 movies = {}
 
-explored = {}
-
-
 def load_data(directory):
     """
     Load data from CSV files into memory.
@@ -56,8 +53,6 @@ def load_data(directory):
 
 
 def main():
-    print("CWD: " + os.getcwd())
-    print("args: " + str(sys.argv))
     if len(sys.argv) > 2:
         sys.exit("Usage: python degrees.py [directory]")
     directory = sys.argv[1] if len(sys.argv) == 2 else "large"
@@ -98,8 +93,11 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-     # Keep track of number of states explored
+    # Keep track of number of states explored
     nodes_explored = 0
+
+    if source == target:
+        return []
 
     """
     Name: Emma Watson
@@ -112,7 +110,7 @@ def shortest_path(source, target):
 
     # Initialize frontier to just the starting position
     start = Node(state=source, parent=None, action=None)
-    frontier = StackFrontier()
+    frontier = QueueFrontier()
     frontier.add(start)
 
     # Initialize an empty explored set
@@ -123,7 +121,7 @@ def shortest_path(source, target):
 
         # If nothing left in frontier, then no path
         if frontier.empty():
-            raise Exception("no solution")
+            return None
 
         # Choose a node from the frontier
         node = frontier.remove()
@@ -131,10 +129,6 @@ def shortest_path(source, target):
         if(nodes_explored % 1000 == 0):
             print("Nodes Explored: " + str(nodes_explored))
             print("Frontier Size: " + str(frontier.len()))
-
-
-        # If node is the goal, then we have a solution
-        
 
         # Mark node as explored
         explored.add(node.state)
@@ -144,12 +138,12 @@ def shortest_path(source, target):
             if not frontier.contains_state(state) and state not in explored:
                 child = Node(state=state, parent=node, action=movie)
                 if child.state == target:
+                    # Found the target - build the chain from source to target.
                     cells = []
                     while child.parent is not None:
                         cells.append((child.action,child.state))
-                        child = node.parent
+                        child = child.parent
                     cells.reverse()
-                    print(str(cells))
                     return cells
                 frontier.add(child)
 
